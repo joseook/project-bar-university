@@ -1,10 +1,6 @@
 from fastapi import FastAPI
-from app.database import engine, Base
-from app.routers import categoria, produto
 
-# Cria as tabelas no banco caso ainda não existam
-# (o init.sql já faz isso no Docker, mas isso garante fora do Docker também)
-Base.metadata.create_all(bind=engine)
+from app.routers import categoria, produto
 
 app = FastAPI(
     title="Bar API",
@@ -12,7 +8,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Registra as rotas de cada módulo
 app.include_router(categoria.router)
 app.include_router(produto.router)
 

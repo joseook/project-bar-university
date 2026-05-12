@@ -1,9 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
 
-from app.database import get_db
-from app.models import Categoria
+from fastapi import APIRouter, HTTPException
+
+from app.queries.categoria_queries import (
+    atualizar_categoria,
+    buscar_categoria_por_id,
+    criar_categoria,
+    deletar_categoria,
+    listar_categorias,
+)
 from app.schemas import CategoriaCreate, CategoriaResponse
 
 router = APIRouter(
@@ -13,47 +18,38 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[CategoriaResponse])
-def listar_categorias(db: Session = Depends(get_db)):
+def rota_listar_categorias():
     """Retorna todas as categorias cadastradas."""
-    return db.query(Categoria).all()
+    return listar_categorias()
 
 
 @router.get("/{id_categoria}", response_model=CategoriaResponse)
-def buscar_categoria(id_categoria: int, db: Session = Depends(get_db)):
+def rota_buscar_categoria(id_categoria: int):
     """Retorna uma categoria pelo ID."""
-    categoria = db.query(Categoria).filter(Categoria.id_categoria == id_categoria).first()
+    categoria = buscar_categoria_por_id(id_categoria)
     if not categoria:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+        raise HTTPException(status_code=404, detail="Categoria nao encontrada")
     return categoria
 
 
 @router.post("/", response_model=CategoriaResponse, status_code=201)
-def criar_categoria(dados: CategoriaCreate, db: Session = Depends(get_db)):
+def rota_criar_categoria(dados: CategoriaCreate):
     """Cria uma nova categoria."""
-    nova_categoria = Categoria(descricao=dados.descricao)
-    db.add(nova_categoria)
-    db.commit()
-    db.refresh(nova_categoria)
-    return nova_categoria
+    return criar_categoria(dados.descricao)
 
 
 @router.put("/{id_categoria}", response_model=CategoriaResponse)
-def atualizar_categoria(id_categoria: int, dados: CategoriaCreate, db: Session = Depends(get_db)):
-    """Atualiza a descrição de uma categoria existente."""
-    categoria = db.query(Categoria).filter(Categoria.id_categoria == id_categoria).first()
+def rota_atualizar_categoria(id_categoria: int, dados: CategoriaCreate):
+    """Atualiza a descricao de uma categoria existente."""
+    categoria = atualizar_categoria(id_categoria, dados.descricao)
     if not categoria:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    categoria.descricao = dados.descricao
-    db.commit()
-    db.refresh(categoria)
+        raise HTTPException(status_code=404, detail="Categoria nao encontrada")
     return categoria
 
 
 @router.delete("/{id_categoria}", status_code=204)
-def deletar_categoria(id_categoria: int, db: Session = Depends(get_db)):
+def rota_deletar_categoria(id_categoria: int):
     """Remove uma categoria pelo ID."""
-    categoria = db.query(Categoria).filter(Categoria.id_categoria == id_categoria).first()
+    categoria = deletar_categoria(id_categoria)
     if not categoria:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    db.delete(categoria)
-    db.commit()
+        raise HTTPException(status_code=404, detail="Categoria nao encontrada")

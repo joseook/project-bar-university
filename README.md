@@ -1,34 +1,33 @@
 # Bar API
 
-REST API for managing a bar's categories and products, built with FastAPI and PostgreSQL.
+REST API and terminal application for managing a bar's categories and products, built with FastAPI, PostgreSQL and explicit SQL queries.
 
 ## Tech Stack
 
-- **Python 3.11+** — application language
-- **FastAPI** — web framework for building the API
-- **SQLAlchemy** — ORM to interact with the database
-- **PostgreSQL 15** — relational database
-- **Docker / Docker Compose** — database container
-- **python-dotenv** — loads environment variables from `.env`
+- **Python 3.11+** - application language
+- **FastAPI** - web framework for building the API
+- **psycopg2** - PostgreSQL driver with explicit SQL queries
+- **PostgreSQL 15** - relational database
+- **Docker / Docker Compose** - database container
+- **python-dotenv** - loads environment variables from `.env`
 
 ## Project Structure
 
-```
+```text
 project-bar/
-├── docker-compose.yml       # spins up the PostgreSQL container
-├── .env                     # database credentials (do not commit)
-├── .env.example             # template for teammates
-├── requirements.txt         # Python dependencies
-├── sql/
-│   └── init.sql             # creates all tables on first run
-└── app/
-    ├── main.py              # API entry point
-    ├── database.py          # database connection
-    ├── models.py            # table definitions (SQLAlchemy)
-    ├── schemas.py           # request/response validation (Pydantic)
-    └── routers/
-        ├── categoria.py     # category endpoints
-        └── produto.py       # product endpoints
+|-- docker-compose.yml       # spins up the PostgreSQL container
+|-- .env                     # database credentials (do not commit)
+|-- .env.example             # template for teammates
+|-- requirements.txt         # Python dependencies
+|-- sql/
+|   |-- init.sql             # creates all tables on first run
+|-- app/
+    |-- cli.py               # terminal menu for CRUD operations
+    |-- database.py          # PostgreSQL connection helpers
+    |-- main.py              # API entry point
+    |-- queries/             # explicit SQL queries by entity
+    |-- routers/             # FastAPI routes
+    |-- schemas.py           # request/response validation
 ```
 
 ## Getting Started
@@ -70,9 +69,9 @@ On the first run, Docker will:
 ### 3. Set up Python environment
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate      # Linux / Mac
-# venv\Scripts\activate       # Windows
+python -m venv venv
+venv\Scripts\activate       # Windows
+# source venv/bin/activate  # Linux / Mac
 
 pip install -r requirements.txt
 ```
@@ -85,7 +84,13 @@ uvicorn app.main:app --reload
 
 The API will be available at `http://localhost:8000`.
 
----
+### 5. Run in terminal
+
+```bash
+python -m app.cli
+```
+
+This opens a text menu for listing and registering categories and products without needing `uvicorn`.
 
 ## API Endpoints
 
@@ -111,31 +116,31 @@ Interactive documentation (Swagger UI) is available at `http://localhost:8000/do
 | PUT | `/produtos/{id}` | Update a product |
 | DELETE | `/produtos/{id}` | Delete a product |
 
+The product queries already use `LEFT JOIN` to return the category description together with each product.
+
 ### Example requests
 
-**Create a category:**
+**Create a category**
 
 ```bash
 curl -X POST http://localhost:8000/categorias/ \
   -H "Content-Type: application/json" \
-  -d '{"descricao": "Bebidas"}'
+  -d "{\"descricao\": \"Bebidas\"}"
 ```
 
-**Create a product linked to category 1:**
+**Create a product linked to category 1**
 
 ```bash
 curl -X POST http://localhost:8000/produtos/ \
   -H "Content-Type: application/json" \
-  -d '{"nome": "Cerveja Heineken", "preco_unitario": 9.50, "fk_categoria": 1}'
+  -d "{\"nome\": \"Cerveja Heineken\", \"preco_unitario\": 9.50, \"fk_categoria\": 1}"
 ```
 
-**List all products:**
+**List all products**
 
 ```bash
 curl http://localhost:8000/produtos/
 ```
-
----
 
 ## Verifying data in the database
 
@@ -151,29 +156,23 @@ Then run SQL queries:
 SELECT * FROM categoria;
 SELECT * FROM produto;
 
--- Exit
-\q
+SELECT
+    p.id_produto,
+    p.nome,
+    p.preco_unitario,
+    c.descricao AS categoria
+FROM produto p
+LEFT JOIN categoria c ON c.id_categoria = p.fk_categoria;
 ```
-
----
 
 ## Docker commands reference
 
 ```bash
-# Start the database in background
 docker compose up -d
-
-# Stop without removing data
 docker compose stop
-
-# Stop and remove containers (data is preserved in volume)
 docker compose down
-
-# Stop, remove containers AND delete all data
 docker compose down -v
 ```
-
----
 
 ## Using pgAdmin instead of Docker
 
@@ -182,33 +181,16 @@ If your team already has PostgreSQL installed locally with pgAdmin, skip Docker 
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=postgres          # your pgAdmin user
+DB_USER=postgres
 DB_PASSWORD=your_password
-DB_NAME=bar_db            # database name created in pgAdmin
+DB_NAME=bar_db
 ```
 
 Then run the SQL script manually in pgAdmin:
+
 1. Open pgAdmin and select your database
 2. Click **Query Tool**
 3. Paste the contents of `sql/init.sql`
-4. Execute — all tables will be created
+4. Execute the script to create all tables
 
-The Python API works the same way regardless of whether you use Docker or pgAdmin.
-
----
-
-## Database Schema
-
-```
-CATEGORIA (1) ──── (N) PRODUTO
-MESA      (1) ──── (N) PEDIDO
-PEDIDO    (N) ──── (N) PRODUTO  via ITENS_PEDIDO
-```
-
-| Table | Description |
-|-------|-------------|
-| `categoria` | Product categories (e.g. Drinks, Snacks) |
-| `produto` | Products with price and category |
-| `mesa` | Bar tables with availability status |
-| `pedido` | Customer orders linked to a table |
-| `itens_pedido` | Junction table: products per order with quantity |
+The API and terminal mode work the same way regardless of whether you use Docker or pgAdmin.

@@ -1,9 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
 
-from app.database import get_db
-from app.models import Produto
+from fastapi import APIRouter, HTTPException
+
+from app.queries.produto_queries import (
+    atualizar_produto,
+    buscar_produto_por_id,
+    criar_produto,
+    deletar_produto,
+    listar_produtos,
+)
 from app.schemas import ProdutoCreate, ProdutoResponse
 
 router = APIRouter(
@@ -13,53 +18,47 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[ProdutoResponse])
-def listar_produtos(db: Session = Depends(get_db)):
+def rota_listar_produtos():
     """Retorna todos os produtos cadastrados."""
-    return db.query(Produto).all()
+    return listar_produtos()
 
 
 @router.get("/{id_produto}", response_model=ProdutoResponse)
-def buscar_produto(id_produto: int, db: Session = Depends(get_db)):
+def rota_buscar_produto(id_produto: int):
     """Retorna um produto pelo ID."""
-    produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
+    produto = buscar_produto_por_id(id_produto)
     if not produto:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
+        raise HTTPException(status_code=404, detail="Produto nao encontrado")
     return produto
 
 
 @router.post("/", response_model=ProdutoResponse, status_code=201)
-def criar_produto(dados: ProdutoCreate, db: Session = Depends(get_db)):
+def rota_criar_produto(dados: ProdutoCreate):
     """Cria um novo produto."""
-    novo_produto = Produto(
+    return criar_produto(
         nome=dados.nome,
         preco_unitario=dados.preco_unitario,
         fk_categoria=dados.fk_categoria,
     )
-    db.add(novo_produto)
-    db.commit()
-    db.refresh(novo_produto)
-    return novo_produto
 
 
 @router.put("/{id_produto}", response_model=ProdutoResponse)
-def atualizar_produto(id_produto: int, dados: ProdutoCreate, db: Session = Depends(get_db)):
+def rota_atualizar_produto(id_produto: int, dados: ProdutoCreate):
     """Atualiza os dados de um produto existente."""
-    produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
+    produto = atualizar_produto(
+        id_produto=id_produto,
+        nome=dados.nome,
+        preco_unitario=dados.preco_unitario,
+        fk_categoria=dados.fk_categoria,
+    )
     if not produto:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
-    produto.nome = dados.nome
-    produto.preco_unitario = dados.preco_unitario
-    produto.fk_categoria = dados.fk_categoria
-    db.commit()
-    db.refresh(produto)
+        raise HTTPException(status_code=404, detail="Produto nao encontrado")
     return produto
 
 
 @router.delete("/{id_produto}", status_code=204)
-def deletar_produto(id_produto: int, db: Session = Depends(get_db)):
+def rota_deletar_produto(id_produto: int):
     """Remove um produto pelo ID."""
-    produto = db.query(Produto).filter(Produto.id_produto == id_produto).first()
+    produto = deletar_produto(id_produto)
     if not produto:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
-    db.delete(produto)
-    db.commit()
+        raise HTTPException(status_code=404, detail="Produto nao encontrado")
