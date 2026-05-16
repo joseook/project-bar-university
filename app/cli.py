@@ -3,6 +3,9 @@ from app.queries.categoria_queries import (
     criar_categoria,
     listar_categorias,
 )
+from app.queries.mesa_queries import (
+    listar_mesas,
+)
 from app.queries.produto_queries import (
     buscar_produto_por_id,
     criar_produto,
@@ -18,6 +21,7 @@ def exibir_menu():
     print("4. Listar produtos")
     print("5. Cadastrar produto")
     print("6. Buscar produto por ID")
+    print("7. Listar mesas")
     print("0. Sair")
 
 
@@ -36,13 +40,13 @@ def mostrar_categorias():
         return
 
     for categoria in categorias:
-        print(f'{categoria["id_categoria"]} - {categoria["descricao"]}')
+        print(f"{categoria['id_categoria']} - {categoria['descricao']}")
 
 
 def cadastrar_categoria():
     descricao = input("Descricao da categoria: ").strip()
     categoria = criar_categoria(descricao)
-    print(f'Categoria criada com ID {categoria["id_categoria"]}.')
+    print(f"Categoria criada com ID {categoria['id_categoria']}.")
 
 
 def consultar_categoria():
@@ -63,8 +67,8 @@ def mostrar_produtos():
     for produto in produtos:
         categoria = produto["categoria_descricao"] or "Sem categoria"
         print(
-            f'{produto["id_produto"]} - {produto["nome"]} - '
-            f'R$ {produto["preco_unitario"]:.2f} - {categoria}'
+            f"{produto['id_produto']} - {produto['nome']} - "
+            f"R$ {produto['preco_unitario']:.2f} - {categoria}"
         )
 
 
@@ -74,7 +78,7 @@ def cadastrar_produto():
     categoria_digitada = input("ID da categoria (enter para vazio): ").strip()
     fk_categoria = int(categoria_digitada) if categoria_digitada else None
     produto = criar_produto(nome, preco_unitario, fk_categoria)
-    print(f'Produto criado com ID {produto["id_produto"]}.')
+    print(f"Produto criado com ID {produto['id_produto']}.")
 
 
 def consultar_produto():
@@ -86,6 +90,15 @@ def consultar_produto():
     print(produto)
 
 
+def mostrar_mesas():
+    mesas = listar_mesas()
+    if not mesas:
+        print("Nenhuma mesa encontrada.")
+        return
+    for mesa in mesas:
+        print(mesa)
+
+
 def main():
     acoes = {
         "1": mostrar_categorias,
@@ -94,6 +107,7 @@ def main():
         "4": mostrar_produtos,
         "5": cadastrar_produto,
         "6": consultar_produto,
+        "7": mostrar_mesas,
     }
 
     while True:
