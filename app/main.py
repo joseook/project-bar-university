@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import categoria, produto
+from app.routers import categoria, produto, mesa
 
 app = FastAPI(
     title="Bar API",
@@ -10,6 +10,7 @@ app = FastAPI(
 
 app.include_router(categoria.router)
 app.include_router(produto.router)
+app.include_router(mesa.router)
 
 
 @app.get("/")

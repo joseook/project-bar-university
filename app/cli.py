@@ -5,6 +5,7 @@ from app.queries.categoria_queries import (
 )
 from app.queries.mesa_queries import (
     listar_mesas,
+    criar_mesa,
 )
 from app.queries.produto_queries import (
     buscar_produto_por_id,
@@ -22,6 +23,7 @@ def exibir_menu():
     print("5. Cadastrar produto")
     print("6. Buscar produto por ID")
     print("7. Listar mesas")
+    print("8. Cadastrar mesa")
     print("0. Sair")
 
 
@@ -98,6 +100,13 @@ def mostrar_mesas():
     for mesa in mesas:
         print(mesa)
 
+def registrar_mesa():
+    numero = ler_inteiro("Numero da mesa: ")
+    status = input("Status da mesa: ").strip()
+    mesa = criar_mesa(numero, status)
+    print(f"Mesa criada com ID {mesa['id_mesa']}.")
+    print(f"Numero: {mesa['numero']}, Status: {mesa['status']}")
+
 
 def main():
     acoes = {
@@ -108,6 +117,7 @@ def main():
         "5": cadastrar_produto,
         "6": consultar_produto,
         "7": mostrar_mesas,
+        "8": registrar_mesa,
     }
 
     while True:
