@@ -1,44 +1,114 @@
 from app.database import get_cursor
 
-def criar_pedido (data_hora, valor_total, status_pagamento, id_mesa, id_funcionario):
+
+def listar_pedidos():
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                id_pedido,
+                data_hora,
+                fk_mesa,
+                valor_total::float AS valor_total
+            FROM pedido
+            ORDER BY id_pedido
+            """
+        )
+        return cursor.fetchall()
+
+
+def buscar_pedido_por_id(id_pedido):
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT
+                id_pedido,
+                data_hora,
+                fk_mesa,
+                valor_total::float AS valor_total
+            FROM pedido
+            WHERE id_pedido = %s
+            """,
+            (id_pedido,),
+        )
+        return cursor.fetchone()
+
+
+def criar_pedido(fk_mesa, valor_total, data_hora=None):
     with get_cursor(commit=True) as cursor:
-        if status_pagamento is None:
+        if data_hora is None:
             cursor.execute(
                 """
-                INSERT INTO pedido (data_hora, valor_total, id_mesa, id_funcionario)
-                VALUES (%s,%s,%s,%s)
-                RETURNING *
+                INSERT INTO pedido (fk_mesa, valor_total)
+                VALUES (%s, %s)
+                RETURNING
+                    id_pedido,
+                    data_hora,
+                    fk_mesa,
+                    valor_total::float AS valor_total
                 """,
-                (data_hora, valor_total, id_mesa, id_funcionario)
+                (fk_mesa, valor_total),
             )
         else:
             cursor.execute(
                 """
-                INSERT INTO pedido (data_hora, valor_total, status_pagamento, id_mesa, id_funcionario)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING *
+                INSERT INTO pedido (data_hora, fk_mesa, valor_total)
+                VALUES (%s, %s, %s)
+                RETURNING
+                    id_pedido,
+                    data_hora,
+                    fk_mesa,
+                    valor_total::float AS valor_total
                 """,
-                (data_hora, valor_total, status_pagamento, id_mesa, id_funcionario)
+                (data_hora, fk_mesa, valor_total),
             )
         return cursor.fetchone()
-    
-def buscar_pedido_por_id(id_pedido):
-    try:
-        with get_cursor() as cursor:
+
+
+def atualizar_pedido(id_pedido, fk_mesa, valor_total, data_hora=None):
+    with get_cursor(commit=True) as cursor:
+        if data_hora is None:
             cursor.execute(
                 """
-                SELECT
-                    p.id_pedido,
-                    p.data_hora,
-                    p.valor_total
-                    p.status_pagamento
-                    p.id_mesa
-                    p.id_funcionario
-                FROM pedido p
-                WHERE p.id_pedido = %s
+                UPDATE pedido
+                SET fk_mesa = %s,
+                    valor_total = %s
+                WHERE id_pedido = %s
+                RETURNING
+                    id_pedido,
+                    data_hora,
+                    fk_mesa,
+                    valor_total::float AS valor_total
                 """,
-                (id_mesa,),
+                (fk_mesa, valor_total, id_pedido),
             )
-            return cursor.fetchone()
-    except Exception as e:
-        raise
+        else:
+            cursor.execute(
+                """
+                UPDATE pedido
+                SET data_hora = %s,
+                    fk_mesa = %s,
+                    valor_total = %s
+                WHERE id_pedido = %s
+                RETURNING
+                    id_pedido,
+                    data_hora,
+                    fk_mesa,
+                    valor_total::float AS valor_total
+                """,
+                (data_hora, fk_mesa, valor_total, id_pedido),
+            )
+        return cursor.fetchone()
+
+
+def deletar_pedido(id_pedido):
+    with get_cursor(commit=True) as cursor:
+        cursor.execute(
+            """
+            DELETE FROM pedido
+            WHERE id_pedido = %s
+            RETURNING id_pedido
+            """,
+            (id_pedido,),
+        )
+        return cursor.fetchone()

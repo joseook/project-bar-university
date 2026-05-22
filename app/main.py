@@ -1,16 +1,17 @@
 from fastapi import FastAPI
 
-from app.routers import categoria, produto, mesa
+from app.routers import categoria, mesa, pedido, produto
 
 app = FastAPI(
     title="Bar API",
-    description="API para gerenciamento de categorias e produtos do bar",
+    description="API para gerenciamento de categorias, produtos, mesas e pedidos do bar",
     version="1.0.0",
 )
 
 app.include_router(categoria.router)
 app.include_router(produto.router)
 app.include_router(mesa.router)
+app.include_router(pedido.router)
 
 
 @app.get("/")

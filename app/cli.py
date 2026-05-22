@@ -1,15 +1,31 @@
+from datetime import datetime
+
 from app.queries.categoria_queries import (
+    atualizar_categoria,
     buscar_categoria_por_id,
     criar_categoria,
+    deletar_categoria,
     listar_categorias,
 )
 from app.queries.mesa_queries import (
-    listar_mesas,
+    atualizar_mesa,
+    buscar_mesa_por_id,
     criar_mesa,
+    deletar_mesa,
+    listar_mesas,
+)
+from app.queries.pedidos_queries import (
+    atualizar_pedido,
+    buscar_pedido_por_id,
+    criar_pedido,
+    deletar_pedido,
+    listar_pedidos,
 )
 from app.queries.produto_queries import (
+    atualizar_produto,
     buscar_produto_por_id,
     criar_produto,
+    deletar_produto,
     listar_produtos,
 )
 
@@ -19,11 +35,23 @@ def exibir_menu():
     print("1. Listar categorias")
     print("2. Cadastrar categoria")
     print("3. Buscar categoria por ID")
-    print("4. Listar produtos")
-    print("5. Cadastrar produto")
-    print("6. Buscar produto por ID")
-    print("7. Listar mesas")
-    print("8. Cadastrar mesa")
+    print("4. Atualizar categoria")
+    print("5. Deletar categoria")
+    print("6. Listar produtos")
+    print("7. Cadastrar produto")
+    print("8. Buscar produto por ID")
+    print("9. Atualizar produto")
+    print("10. Deletar produto")
+    print("11. Listar mesas")
+    print("12. Cadastrar mesa")
+    print("13. Buscar mesa por ID")
+    print("14. Atualizar mesa")
+    print("15. Deletar mesa")
+    print("16. Listar pedidos")
+    print("17. Cadastrar pedido")
+    print("18. Buscar pedido por ID")
+    print("19. Atualizar pedido")
+    print("20. Deletar pedido")
     print("0. Sair")
 
 
@@ -31,8 +59,25 @@ def ler_inteiro(mensagem):
     return int(input(mensagem).strip())
 
 
+def ler_inteiro_opcional(mensagem):
+    valor = input(mensagem).strip()
+    return int(valor) if valor else None
+
+
 def ler_decimal(mensagem):
     return float(input(mensagem).strip().replace(",", "."))
+
+
+def ler_decimal_opcional(mensagem):
+    valor = input(mensagem).strip()
+    return float(valor.replace(",", ".")) if valor else None
+
+
+def ler_data_hora_opcional(mensagem):
+    valor = input(mensagem).strip()
+    if not valor:
+        return None
+    return datetime.fromisoformat(valor)
 
 
 def mostrar_categorias():
@@ -60,6 +105,25 @@ def consultar_categoria():
     print(categoria)
 
 
+def alterar_categoria():
+    id_categoria = ler_inteiro("ID da categoria: ")
+    descricao = input("Nova descricao: ").strip()
+    categoria = atualizar_categoria(id_categoria, descricao)
+    if not categoria:
+        print("Categoria nao encontrada.")
+        return
+    print(f"Categoria atualizada: {categoria}")
+
+
+def remover_categoria():
+    id_categoria = ler_inteiro("ID da categoria: ")
+    categoria = deletar_categoria(id_categoria)
+    if not categoria:
+        print("Categoria nao encontrada.")
+        return
+    print("Categoria removida.")
+
+
 def mostrar_produtos():
     produtos = listar_produtos()
     if not produtos:
@@ -77,8 +141,7 @@ def mostrar_produtos():
 def cadastrar_produto():
     nome = input("Nome do produto: ").strip()
     preco_unitario = ler_decimal("Preco unitario: ")
-    categoria_digitada = input("ID da categoria (enter para vazio): ").strip()
-    fk_categoria = int(categoria_digitada) if categoria_digitada else None
+    fk_categoria = ler_inteiro_opcional("ID da categoria (enter para vazio): ")
     produto = criar_produto(nome, preco_unitario, fk_categoria)
     print(f"Produto criado com ID {produto['id_produto']}.")
 
@@ -92,6 +155,27 @@ def consultar_produto():
     print(produto)
 
 
+def alterar_produto():
+    id_produto = ler_inteiro("ID do produto: ")
+    nome = input("Novo nome: ").strip()
+    preco_unitario = ler_decimal("Novo preco unitario: ")
+    fk_categoria = ler_inteiro_opcional("ID da categoria (enter para vazio): ")
+    produto = atualizar_produto(id_produto, nome, preco_unitario, fk_categoria)
+    if not produto:
+        print("Produto nao encontrado.")
+        return
+    print(f"Produto atualizado: {produto}")
+
+
+def remover_produto():
+    id_produto = ler_inteiro("ID do produto: ")
+    produto = deletar_produto(id_produto)
+    if not produto:
+        print("Produto nao encontrado.")
+        return
+    print("Produto removido.")
+
+
 def mostrar_mesas():
     mesas = listar_mesas()
     if not mesas:
@@ -100,12 +184,89 @@ def mostrar_mesas():
     for mesa in mesas:
         print(mesa)
 
+
 def registrar_mesa():
     numero = ler_inteiro("Numero da mesa: ")
-    status = input("Status da mesa: ").strip()
+    status = input("Status da mesa (enter para Disponivel): ").strip() or None
     mesa = criar_mesa(numero, status)
     print(f"Mesa criada com ID {mesa['id_mesa']}.")
     print(f"Numero: {mesa['numero']}, Status: {mesa['status']}")
+
+
+def consultar_mesa():
+    id_mesa = ler_inteiro("ID da mesa: ")
+    mesa = buscar_mesa_por_id(id_mesa)
+    if not mesa:
+        print("Mesa nao encontrada.")
+        return
+    print(mesa)
+
+
+def alterar_mesa():
+    id_mesa = ler_inteiro("ID da mesa: ")
+    numero = ler_inteiro("Novo numero da mesa: ")
+    status = input("Novo status da mesa: ").strip() or None
+    mesa = atualizar_mesa(id_mesa, numero, status)
+    if not mesa:
+        print("Mesa nao encontrada.")
+        return
+    print(f"Mesa atualizada: {mesa}")
+
+
+def remover_mesa():
+    id_mesa = ler_inteiro("ID da mesa: ")
+    mesa = deletar_mesa(id_mesa)
+    if not mesa:
+        print("Mesa nao encontrada.")
+        return
+    print("Mesa removida.")
+
+
+def mostrar_pedidos():
+    pedidos = listar_pedidos()
+    if not pedidos:
+        print("Nenhum pedido encontrado.")
+        return
+    for pedido in pedidos:
+        print(pedido)
+
+
+def registrar_pedido():
+    fk_mesa = ler_inteiro_opcional("ID da mesa (enter para vazio): ")
+    valor_total = ler_decimal_opcional("Valor total (enter para vazio): ")
+    data_hora = ler_data_hora_opcional("Data/hora ISO (enter para agora): ")
+    pedido = criar_pedido(fk_mesa, valor_total, data_hora)
+    print(f"Pedido criado com ID {pedido['id_pedido']}.")
+
+
+def consultar_pedido():
+    id_pedido = ler_inteiro("ID do pedido: ")
+    pedido = buscar_pedido_por_id(id_pedido)
+    if not pedido:
+        print("Pedido nao encontrado.")
+        return
+    print(pedido)
+
+
+def alterar_pedido():
+    id_pedido = ler_inteiro("ID do pedido: ")
+    fk_mesa = ler_inteiro_opcional("Novo ID da mesa (enter para vazio): ")
+    valor_total = ler_decimal_opcional("Novo valor total (enter para vazio): ")
+    data_hora = ler_data_hora_opcional("Nova data/hora ISO (enter para manter): ")
+    pedido = atualizar_pedido(id_pedido, fk_mesa, valor_total, data_hora)
+    if not pedido:
+        print("Pedido nao encontrado.")
+        return
+    print(f"Pedido atualizado: {pedido}")
+
+
+def remover_pedido():
+    id_pedido = ler_inteiro("ID do pedido: ")
+    pedido = deletar_pedido(id_pedido)
+    if not pedido:
+        print("Pedido nao encontrado.")
+        return
+    print("Pedido removido.")
 
 
 def main():
@@ -113,11 +274,23 @@ def main():
         "1": mostrar_categorias,
         "2": cadastrar_categoria,
         "3": consultar_categoria,
-        "4": mostrar_produtos,
-        "5": cadastrar_produto,
-        "6": consultar_produto,
-        "7": mostrar_mesas,
-        "8": registrar_mesa,
+        "4": alterar_categoria,
+        "5": remover_categoria,
+        "6": mostrar_produtos,
+        "7": cadastrar_produto,
+        "8": consultar_produto,
+        "9": alterar_produto,
+        "10": remover_produto,
+        "11": mostrar_mesas,
+        "12": registrar_mesa,
+        "13": consultar_mesa,
+        "14": alterar_mesa,
+        "15": remover_mesa,
+        "16": mostrar_pedidos,
+        "17": registrar_pedido,
+        "18": consultar_pedido,
+        "19": alterar_pedido,
+        "20": remover_pedido,
     }
 
     while True:

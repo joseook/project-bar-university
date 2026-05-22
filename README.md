@@ -1,6 +1,6 @@
 # Bar API
 
-REST API and terminal application for managing a bar's categories and products, built with FastAPI, PostgreSQL and explicit SQL queries.
+REST API and terminal application for managing a bar's categories, products, tables and orders, built with FastAPI, PostgreSQL and explicit SQL queries.
 
 ## Tech Stack
 
@@ -90,7 +90,7 @@ The API will be available at `http://localhost:8000`.
 python -m app.cli
 ```
 
-This opens a text menu for listing and registering categories and products without needing `uvicorn`.
+This opens a text menu for CRUD operations without needing `uvicorn`.
 
 ## API Endpoints
 
@@ -117,6 +117,26 @@ Interactive documentation (Swagger UI) is available at `http://localhost:8000/do
 | DELETE | `/produtos/{id}` | Delete a product |
 
 The product queries already use `LEFT JOIN` to return the category description together with each product.
+
+### Tables
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/mesas/` | List all tables |
+| GET | `/mesas/{id}` | Get table by ID |
+| POST | `/mesas/` | Create a new table |
+| PUT | `/mesas/{id}` | Update a table |
+| DELETE | `/mesas/{id}` | Delete a table |
+
+### Orders
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/pedidos/` | List all orders |
+| GET | `/pedidos/{id}` | Get order by ID |
+| POST | `/pedidos/` | Create a new order |
+| PUT | `/pedidos/{id}` | Update an order |
+| DELETE | `/pedidos/{id}` | Delete an order |
 
 ### Example requests
 
