@@ -3,6 +3,24 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+
+class UsuarioCreate(BaseModel):
+    nome: str
+    login: str
+    senha: str
+
+
+class UsuarioLogin(BaseModel):
+    login: str
+    senha: str
+
+
+class UsuarioResponse(BaseModel):
+    id_usuario: int
+    nome: str
+    login: str
+
+
 class CategoriaBase(BaseModel):
     descricao: str
 

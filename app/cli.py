@@ -1,5 +1,10 @@
+import getpass
 from datetime import datetime
 
+import psycopg2
+import psycopg2.errors
+
+from app.queries.usuario_queries import autenticar_usuario, criar_usuario
 from app.queries.categoria_queries import (
     atualizar_categoria,
     buscar_categoria_por_id,
@@ -30,8 +35,46 @@ from app.queries.produto_queries import (
 )
 
 
-def exibir_menu():
+def exibir_menu_autenticacao():
     print("\n=== SISTEMA DO BAR ===")
+    print("1. Login")
+    print("2. Registrar conta")
+    print("0. Sair")
+
+
+def fazer_login():
+    login = input("Login: ").strip()
+    senha = getpass.getpass("Senha: ")
+    usuario = autenticar_usuario(login, senha)
+    if not usuario:
+        print("Login ou senha invalidos.")
+        return None
+    print(f"Login realizado com sucesso! Bem-vindo, {usuario['nome']}!")
+    return usuario
+
+
+def registrar_usuario():
+    nome = input("Nome: ").strip()
+    login = input("Login: ").strip()
+    senha = getpass.getpass("Senha: ")
+    confirmar = getpass.getpass("Confirmar senha: ")
+    if senha != confirmar:
+        print("As senhas nao conferem.")
+        return None
+    try:
+        usuario = criar_usuario(nome, login, senha)
+        print(f"Conta criada com sucesso! Bem-vindo, {usuario['nome']}!")
+        return {"id_usuario": usuario["id_usuario"], "nome": usuario["nome"], "login": usuario["login"]}
+    except psycopg2.errors.UniqueViolation:
+        print("Esse login ja esta em uso.")
+        return None
+    except Exception as erro:
+        print(f"Erro ao criar conta: {erro}")
+        return None
+
+
+def exibir_menu(nome_usuario):
+    print(f"\n=== SISTEMA DO BAR - Bem-vindo, {nome_usuario}! ===")
     print("1. Listar categorias")
     print("2. Cadastrar categoria")
     print("3. Buscar categoria por ID")
@@ -52,7 +95,7 @@ def exibir_menu():
     print("18. Buscar pedido por ID")
     print("19. Atualizar pedido")
     print("20. Deletar pedido")
-    print("0. Sair")
+    print("0. Sair (logout)")
 
 
 def ler_inteiro(mensagem):
@@ -270,6 +313,22 @@ def remover_pedido():
 
 
 def main():
+    usuario_logado = None
+
+    while not usuario_logado:
+        exibir_menu_autenticacao()
+        opcao = input("Escolha uma opcao: ").strip()
+
+        if opcao == "0":
+            print("Encerrando sistema.")
+            return
+        elif opcao == "1":
+            usuario_logado = fazer_login()
+        elif opcao == "2":
+            usuario_logado = registrar_usuario()
+        else:
+            print("Opcao invalida.")
+
     acoes = {
         "1": mostrar_categorias,
         "2": cadastrar_categoria,
@@ -294,11 +353,11 @@ def main():
     }
 
     while True:
-        exibir_menu()
+        exibir_menu(usuario_logado["nome"])
         opcao = input("Escolha uma opcao: ").strip()
 
         if opcao == "0":
-            print("Encerrando sistema.")
+            print(f"Ate logo, {usuario_logado['nome']}!")
             break
 
         acao = acoes.get(opcao)
