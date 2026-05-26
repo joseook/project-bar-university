@@ -1,0 +1,81 @@
+# DDL — Data Definition Language
+
+Scripts de criação das tabelas do banco de dados (`sql/init.sql`).
+
+---
+
+## CATEGORIA
+
+```sql
+CREATE TABLE IF NOT EXISTS CATEGORIA (
+    ID_CATEGORIA SERIAL PRIMARY KEY,
+    DESCRICAO    VARCHAR(100) NOT NULL
+);
+```
+
+## PRODUTO
+
+```sql
+CREATE TABLE IF NOT EXISTS PRODUTO (
+    ID_PRODUTO     SERIAL PRIMARY KEY,
+    NOME           VARCHAR(255)   NOT NULL,
+    PRECO_UNITARIO NUMERIC(10, 2) NOT NULL,
+    FK_CATEGORIA   INT REFERENCES CATEGORIA (ID_CATEGORIA)
+);
+```
+
+## MESA
+
+```sql
+CREATE TABLE IF NOT EXISTS MESA (
+    ID_MESA SERIAL PRIMARY KEY,
+    NUMERO  INT         UNIQUE NOT NULL,
+    STATUS  VARCHAR(20) DEFAULT 'Disponivel'
+);
+```
+
+## PEDIDO
+
+```sql
+CREATE TABLE IF NOT EXISTS PEDIDO (
+    ID_PEDIDO   SERIAL PRIMARY KEY,
+    DATA_HORA   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FK_MESA     INT            REFERENCES MESA (ID_MESA),
+    VALOR_TOTAL NUMERIC(10, 2)
+);
+```
+
+## USUARIO
+
+```sql
+CREATE TABLE IF NOT EXISTS USUARIO (
+    ID_USUARIO  SERIAL PRIMARY KEY,
+    NOME        VARCHAR(100) NOT NULL,
+    LOGIN       VARCHAR(50)  UNIQUE NOT NULL,
+    SENHA_HASH  TEXT NOT NULL
+);
+```
+
+## ITENS_PEDIDO
+
+```sql
+CREATE TABLE IF NOT EXISTS ITENS_PEDIDO (
+    FK_PEDIDO  INT REFERENCES PEDIDO (ID_PEDIDO),
+    FK_PRODUTO INT REFERENCES PRODUTO (ID_PRODUTO),
+    QUANTIDADE INT NOT NULL,
+    PRIMARY KEY (FK_PEDIDO, FK_PRODUTO)
+);
+```
+
+---
+
+## Ordem de criação
+
+As tabelas devem ser criadas na seguinte ordem para respeitar as dependências de chave estrangeira:
+
+1. `CATEGORIA`
+2. `PRODUTO` *(depende de CATEGORIA)*
+3. `MESA`
+4. `PEDIDO` *(depende de MESA)*
+5. `USUARIO`
+6. `ITENS_PEDIDO` *(depende de PEDIDO e PRODUTO)*
